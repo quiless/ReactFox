@@ -1,10 +1,49 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, Image, Dimensions } from 'react-native';
+import { Platform, StyleSheet, Text, View, Image, Dimensions, AsyncStorage, ActivityIndicator } from 'react-native';
+import { NavigationActions } from 'react-navigation';
 import { Container, Header, Content, Spinner } from 'native-base';
+import { Login } from '../login/login'
+
+
+
+const navigateAction = NavigationActions.navigate({
+  routeName: 'Chat',
+
+  params: {},
+
+  action: NavigationActions.navigate({ routeName: 'Chat' }),
+});
+
 
 
 export default class Loading extends Component {
+
+
+  static navigationOptions = {
+    header: {
+      
+    }
+  }
+
+
+
+
+  constructor(props) {
+    super(props);
+    this.state = { isLoggedIn: false };
+    setTimeout(() => {
+      this.getAuthInfo();
+    }, 4000);
+  }
+
+  getAuthInfo = async () => {
+    const userToken = await AsyncStorage.getItem('Token');
+    console.log(userToken);
+    this.props.navigation.navigate(userToken ? 'App' : 'Auth');
+  };
+
   render() {
+
     return (
       <Container>
         <Content style={styles.content}>

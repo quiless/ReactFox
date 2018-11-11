@@ -1,7 +1,7 @@
 
 import React, { Component, DOM } from 'react';
-import { Platform, StyleSheet, Text, View, Image, Dimensions, TouchableOpacity } from 'react-native';
-import { Container, Header, Content, Spinner, Icon, Toast, ActionSheet, } from 'native-base';
+import { Platform, StyleSheet, View, Image, Dimensions, TouchableOpacity } from 'react-native';
+import { Container, Content, Header, Button, Text, Icon, Card, CardItem, Thumbnail, Body, Left, Right, Title, ActionSheet } from 'native-base';
 import { GiftedChat } from 'react-native-gifted-chat'
 import ImagePicker from 'react-native-image-picker';
 import { RNCamera } from 'react-native-camera';
@@ -15,7 +15,7 @@ state = {
 }
 
 _toggleModal = () =>
-this.setState({ isModalVisible: !this.state.isModalVisible });
+  this.setState({ isModalVisible: !this.state.isModalVisible });
 
 var actionSheetOptions = [{ text: "Tirar foto", icon: "camera" },
 { text: "Selecionar arquivos do celular", icon: "document" },];
@@ -23,14 +23,33 @@ var DESTRUCTIVE_INDEX = 3;
 var CANCEL_INDEX = 4;
 
 
-
-const App = createStackNavigator({
-  Camera: { screen: Camera }
-});
+const optionsImagePicker = {
+  title: 'Selecionar documento',
+  storageOptions: {
+    skipBackup: true,
+    path: 'images',
+  },
+  customButtons: [{ name: 'fb', title: 'Selecionar do Facebook' }],
+  chooseFromLibraryButtonTitle: 'Selecionar da Galeria',
+  takePhotoButtonTitle: null,
+  permissionDenied: {
+    title: 'Acesso negado',
+    text: 'Precisamos de permissão para acessar as imagens da galeria.'
+  },
+  mediaType: 'photo'
+};
 
 
 
 export default class Chat extends Component {
+
+  static navigationOptions = {
+    drawerIcon: ({ tintColor }) => (
+      <Icon name="chatboxes" />
+    ),
+    drawerLabel: 'Chat'
+  }
+
 
   constructor(props) {
     super(props);
@@ -57,6 +76,27 @@ export default class Chat extends Component {
     })
   }
 
+  showImagePicker() {
+    ImagePicker.showImagePicker(optionsImagePicker, (response) => {
+      console.log('Response = ', response);
+
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      } else {
+        const source = { uri: response.uri };
+
+        // You can also display the image using data:
+        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+
+
+      }
+    });
+  }
+
   onSend(messages = []) {
     this.setState(previousState => ({
       messages: GiftedChat.append(previousState.messages, messages),
@@ -64,10 +104,12 @@ export default class Chat extends Component {
   }
 
   actionClicked(index) {
-    console.log("CHAMOUUU");
+
     console.log(this.props);
     if (index == 0) {
-      //this.props.navigation.navigate('Camera');
+      this.props.navigation.navigate('Camera');
+    } else if (index == 1) {
+      this.showImagePicker();
     }
   }
 
@@ -90,16 +132,33 @@ export default class Chat extends Component {
 
   render() {
     return (
-      <GiftedChat
-        placeholder="Escrever mensagem..."
-        locale="pt-br"
-        renderActions={this.renderCustomActions}
-        messages={this.state.messages}
-        onSend={messages => this.onSend(messages)}
-        user={{
-          _id: 1,
-        }}
-      />
+      <Container>
+        <Header style={styles.headerStyle}>
+          <Left>
+            <Button
+              transparent
+              onPress={() => this.props.navigation.openDrawer()}
+            >
+              <Icon name="menu" />
+            </Button>
+          </Left>
+          <Body>
+            <Title> Chat </Title>
+          </Body>
+          <Right />
+        </Header>
+        <GiftedChat
+          placeholder="Escrever mensagem..."
+          locale="pt-br"
+          renderActions={this.renderCustomActions}
+          messages={this.state.messages}
+          onSend={messages => this.onSend(messages)}
+          user={{
+            _id: 1,
+          }}
+        />
+        <Image style={styles.imagePicker} />
+      </Container>
     )
   }
 
@@ -129,8 +188,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF'
   },
   attachIcon: {
-    marginLeft: 10,
-    marginBottom: 10
+    marginLeft: 20,
+    marginBottom: 10,
+    fontSize: 30
   },
   preview: {
     flex: 1,
@@ -146,6 +206,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     margin: 20,
   },
+  headerStyle: {
+    backgroundColor: '#003366'
+  },
+  imagePicker: {
+    backgroundColor: '#003366'
+  }
 });
 
 
